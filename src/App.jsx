@@ -1,6 +1,7 @@
 import axios from "axios";
 import "./App.css";
-import Register from "./Pages/Register";
+import Routes from "./Router/Routes";
+import UserContext from "./Context/UserContext";
 
 function App() {
   axios.defaults.baseURL = "http://localhost:5000";
@@ -9,7 +10,9 @@ function App() {
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        <Register></Register>
+        <UserContext>
+          <Routes></Routes>
+        </UserContext>
       </div>
     </>
   );

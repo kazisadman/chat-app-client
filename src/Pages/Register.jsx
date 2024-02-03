@@ -1,16 +1,22 @@
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { UserContextProvider } from "../Context/UserContext";
 
 const Register = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { setUserName: setLoggedUserName, setId } =
+    useContext(UserContextProvider);
 
   const register = (e) => {
     e.preventDefault();
-    console.log(username,password);
     axios
       .post("/register", { username, password })
-      .then((res) => console.log(res))
+      .then((res) => {
+        console.log(res);
+        setId(res.data.id);
+        setLoggedUserName(username);
+      })
       .catch((err) => console.error(err));
   };
 
