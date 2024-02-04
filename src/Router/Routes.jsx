@@ -1,16 +1,17 @@
 import { useContext } from "react";
-import Register from "../Pages/Register";
+import RegisterandLogin from "../Pages/Register&Login";
 import { UserContextProvider } from "../Context/UserContext";
+import Chat from "../Pages/Chat";
 
 const Routes = () => {
-  const { userName, Id } = useContext(UserContextProvider);
+  const { userName } = useContext(UserContextProvider);
 
   if (userName) {
-    return "loggedIn: " + userName;
+    return <Chat></Chat>;
   }
   return (
     <div>
-      <Register></Register>
+      <RegisterandLogin></RegisterandLogin>
     </div>
   );
 };
