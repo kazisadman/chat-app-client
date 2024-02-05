@@ -10,7 +10,7 @@ const Routes = () => {
     return <Chat></Chat>;
   }
   return (
-    <div>
+    <div className="font-poppins">
       <RegisterandLogin></RegisterandLogin>
     </div>
   );
