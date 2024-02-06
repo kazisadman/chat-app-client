@@ -15,7 +15,6 @@ const UserContext = ({ children }) => {
         setId(res.data.userId);
         setUserName(res.data.username);
       })
-      .then((err) => console.error(err));
   }, []);
 
   return (
