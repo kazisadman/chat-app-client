@@ -27,7 +27,12 @@ const RegisterandLogin = () => {
       <form onSubmit={handleSubmit} className="w-1/3 flex flex-col gap-4">
         <input
           type="text"
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => {
+            const userName = e.target.value;
+            const userNameCapital =
+              userName.charAt(0).toUpperCase() + userName.slice(1);
+            setUsername(userNameCapital);
+          }}
           placeholder="Username"
           className="p-2 rounded-lg"
         />

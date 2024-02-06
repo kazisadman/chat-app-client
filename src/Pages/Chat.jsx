@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Avatar from "../Components/Avatar";
 
 const Chat = () => {
   const [ws, setWs] = useState(null);
@@ -44,7 +45,13 @@ const Chat = () => {
           LET&apos;Schat
         </div>
         {Object.keys(onlinePeople).map((userId) => (
-          <div key={userId}>{onlinePeople[userId]}</div>
+          <div
+            key={userId}
+            className="flex items-center gap-2 py-2 cursor-pointer"
+          >
+            <Avatar userName={onlinePeople[userId]} userId={userId}></Avatar>
+            {onlinePeople[userId]}
+          </div>
         ))}
       </div>
       <div className="flex flex-col bg-blue-100 w-2/3 px-4 py-3">
