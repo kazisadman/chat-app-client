@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import Avatar from "../Components/Avatar";
 import { UserContextProvider } from "../Context/UserContext";
+import { uniqBy } from "lodash";
 
 const Chat = () => {
   const [ws, setWs] = useState(null);
@@ -20,12 +21,18 @@ const Chat = () => {
 
     function handleMessage(e) {
       const messageData = JSON.parse(e.data);
+      console.log({ e, messageData });
       if ("online" in messageData) {
         showOnlinePeople(messageData.online);
-      } else {
+      } else if ("text" in messageData) {
         setMessages((prev) => [
           ...prev,
-          { text: messageData.text, isOur: false },
+          {
+            id: messageData.id,
+            text: messageData.text,
+            sender: messageData.sender,
+            recipient: messageData.recipent,
+          },
         ]);
       }
     }
@@ -37,7 +44,7 @@ const Chat = () => {
       });
       setOnlinePeople(people);
     }
-  }, []);
+  }, [Id]);
 
   function selectedUser(userId) {
     setSelectedUserId(userId);
@@ -58,8 +65,19 @@ const Chat = () => {
     ws.send(dataStringify);
 
     setNewMessage("");
-    setMessages((prev) => [...prev, { text: newMessage, isOur: true }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        text: newMessage,
+        sender: Id,
+        recipent: selectedUserId,
+        id: Date.now(),
+      },
+    ]);
   }
+
+  const messegesWithoutDuplicates = uniqBy(messages, "id");
+  console.log(messegesWithoutDuplicates);
 
   return (
     <div className="flex h-screen max-w-7xl mx-auto font-poppins">
@@ -92,7 +110,7 @@ const Chat = () => {
           </div>
         ))}
       </div>
-      <div className="flex flex-col bg-blue-100 w-2/3 px-4 py-3">
+      <div className="overflow-y-scroll flex flex-col bg-blue-100 w-2/3 px-4 py-3">
         <div className="flex-grow">
           {!selectedUserId && (
             <div className="flex justify-center h-full items-center">
@@ -101,8 +119,25 @@ const Chat = () => {
           )}
           {selectedUser && (
             <div>
-              {messages.map((message, index) => (
-                <div key={index}>{message.text}</div>
+              {messegesWithoutDuplicates.map((message, index) => (
+                <div
+                  className={`${
+                    message.sender === Id ? "text-right" : "text-left"
+                  }`}
+                  key={index}
+                >
+                  <div
+                    className={`${
+                      message.sender === Id
+                        ? "bg-blue-600 text-white"
+                        : "bg-blue-400 text-white"
+                    } rounded-lg my-4 p-3 inline-block`}
+                  >
+                    {/* sender:{message.sender} <br />
+                    myId:{Id} <br /> */}
+                    {message.text}
+                  </div>
+                </div>
               ))}
             </div>
           )}
