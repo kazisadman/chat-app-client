@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Avatar from "../Components/Avatar";
 import { UserContextProvider } from "../Context/UserContext";
 import { uniqBy } from "lodash";
@@ -9,6 +9,7 @@ const Chat = () => {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const messageContainerRef = useRef(null);
 
   console.log(messages);
 
@@ -79,6 +80,16 @@ const Chat = () => {
   const messegesWithoutDuplicates = uniqBy(messages, "id");
   console.log(messegesWithoutDuplicates);
 
+  const scrollBottom = () => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollIntoView();
+    }
+  };
+
+  useEffect(() => {
+    scrollBottom();
+  }, [messages]);
+
   return (
     <div className="flex h-screen max-w-7xl mx-auto font-poppins">
       <div className="bg-white w-1/3 px-4 py-3">
@@ -117,7 +128,7 @@ const Chat = () => {
               <div className="text-gray-400">No Message To Show</div>
             </div>
           )}
-          {selectedUser && (
+          {selectedUserId && (
             <div>
               {messegesWithoutDuplicates.map((message, index) => (
                 <div
@@ -133,15 +144,17 @@ const Chat = () => {
                         : "bg-blue-400 text-white"
                     } rounded-lg my-4 p-3 inline-block`}
                   >
-                    {/* sender:{message.sender} <br />
-                    myId:{Id} <br /> */}
+                    sender:{message.sender} <br />
+                    myId:{Id} <br />
                     {message.text}
                   </div>
                 </div>
               ))}
+              <div ref={messageContainerRef}></div>
             </div>
           )}
         </div>
+
         {selectedUserId && (
           <form
             className="flex items-center gap-2"
