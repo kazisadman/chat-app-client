@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import Avatar from "../Components/Avatar";
 import { UserContextProvider } from "../Context/UserContext";
 import { uniqBy } from "lodash";
+import axios from "axios";
 
 const Chat = () => {
   const [ws, setWs] = useState(null);
@@ -46,6 +47,13 @@ const Chat = () => {
       setOnlinePeople(people);
     }
   }, [Id]);
+
+  //load messages from database
+  useEffect(() => {
+    if (selectedUserId) {
+      axios.get(`messages/${selectedUserId}`);
+    }
+  }, [selectedUserId]);
 
   function selectedUser(userId) {
     setSelectedUserId(userId);
