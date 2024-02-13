@@ -12,46 +12,56 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const messageContainerRef = useRef(null);
 
-  console.log(messages);
-
   const { Id } = useContext(UserContextProvider);
 
   useEffect(() => {
+    connetToWs();
+  }, []);
+
+  //reconnect to websocket
+  function connetToWs() {
     const ws = new WebSocket("ws://localhost:5000");
     setWs(ws);
     ws.addEventListener("message", handleMessage);
+    ws.addEventListener("close", () => {
+      setTimeout(() => {
+        console.log("Websocket disconnected,trying to reconnect");
+        connetToWs();
+      }, 1000);
+    });
+  }
 
-    function handleMessage(e) {
-      const messageData = JSON.parse(e.data);
-      console.log({ e, messageData });
-      if ("online" in messageData) {
-        showOnlinePeople(messageData.online);
-      } else if ("text" in messageData) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: messageData.id,
-            text: messageData.text,
-            sender: messageData.sender,
-            recipient: messageData.recipent,
-          },
-        ]);
-      }
+  function handleMessage(e) {
+    const messageData = JSON.parse(e.data);
+    if ("online" in messageData) {
+      showOnlinePeople(messageData.online);
+    } else if ("text" in messageData) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          _id: messageData._id,
+          text: messageData.text,
+          sender: messageData.sender,
+          recipient: messageData.recipent,
+        },
+      ]);
     }
+  }
 
-    function showOnlinePeople(peopleArray) {
-      const people = {};
-      peopleArray.forEach(({ userId, userName }) => {
-        people[userId] = userName;
-      });
-      setOnlinePeople(people);
-    }
-  }, [Id]);
+  function showOnlinePeople(peopleArray) {
+    const people = {};
+    peopleArray.forEach(({ userId, userName }) => {
+      people[userId] = userName;
+    });
+    setOnlinePeople(people);
+  }
 
   //load messages from database
   useEffect(() => {
     if (selectedUserId) {
-      axios.get(`messages/${selectedUserId}`);
+      axios
+        .get(`messages/${selectedUserId}`)
+        .then((res) => setMessages(res.data));
     }
   }, [selectedUserId]);
 
@@ -80,13 +90,12 @@ const Chat = () => {
         text: newMessage,
         sender: Id,
         recipent: selectedUserId,
-        id: Date.now(),
+        _id: Date.now(),
       },
     ]);
   }
 
-  const messegesWithoutDuplicates = uniqBy(messages, "id");
-  console.log(messegesWithoutDuplicates);
+  const messegesWithoutDuplicates = uniqBy(messages, "_id");
 
   const scrollBottom = () => {
     if (messageContainerRef.current) {
@@ -99,8 +108,8 @@ const Chat = () => {
   }, [messages]);
 
   return (
-    <div className="flex h-screen max-w-7xl mx-auto font-poppins">
-      <div className="bg-white w-1/3 px-4 py-3">
+    <div className=" flex h-screen max-w-7xl mx-auto font-poppins">
+      <div className="bg-white w-1/3 pl-4 py-3">
         <div className="font-bold text-blue-700 flex items-center gap-2 py-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -120,7 +129,7 @@ const Chat = () => {
           <div
             key={userId}
             className={`flex items-center gap-2 py-2  cursor-pointer ${
-              userId === selectedUserId && "bg-blue-400 text-white pl-2"
+              userId === selectedUserId && "bg-blue-100  pl-2 rounded-s-2xl"
             }`}
             onClick={() => selectedUser(userId)}
           >
@@ -129,7 +138,7 @@ const Chat = () => {
           </div>
         ))}
       </div>
-      <div className="overflow-y-scroll flex flex-col bg-blue-100 w-2/3 px-4 py-3">
+      <div className=" overflow-y-scroll flex flex-col bg-blue-100 w-2/3 px-4 py-3">
         <div className="flex-grow">
           {!selectedUserId && (
             <div className="flex justify-center h-full items-center">
@@ -138,26 +147,31 @@ const Chat = () => {
           )}
           {selectedUserId && (
             <div>
-              {messegesWithoutDuplicates.map((message, index) => (
-                <div
-                  className={`${
-                    message.sender === Id ? "text-right" : "text-left"
-                  }`}
-                  key={index}
-                >
-                  <div
-                    className={`${
-                      message.sender === Id
-                        ? "bg-blue-600 text-white"
-                        : "bg-blue-400 text-white"
-                    } rounded-lg my-4 p-3 inline-block`}
-                  >
-                    sender:{message.sender} <br />
-                    myId:{Id} <br />
-                    {message.text}
-                  </div>
-                </div>
-              ))}
+              {messegesWithoutDuplicates.map((message, index) => {
+                const isMessageForSelectedUser =
+                   message.sender === selectedUserId ||
+                  message.recipent === selectedUserId;
+                if (isMessageForSelectedUser) {
+                  return (
+                    <div
+                      className={`${
+                        message.sender === Id ? "text-right" : "text-left"
+                      }`}
+                      key={index}
+                    >
+                      <div
+                        className={`${
+                          message.sender === Id
+                            ? "bg-blue-600 text-white"
+                            : "bg-blue-400 text-white"
+                        } rounded-lg my-4 p-3 inline-block max-w-xs text-justify `}
+                      >
+                        {message.text}
+                      </div>
+                    </div>
+                  );
+                } 
+              })}
               <div ref={messageContainerRef}></div>
             </div>
           )}
@@ -175,7 +189,10 @@ const Chat = () => {
               placeholder="Type Your Message Here"
               className="flex-grow border-none p-2 rounded-lg"
             />
-            <button className="bg-blue-500 text-white p-2">
+            <button
+              className="bg-blue-500 text-white p-2 rounded-lg"
+              disabled={newMessage.length === 0}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"

@@ -15,7 +15,6 @@ const RegisterandLogin = () => {
     axios
       .post(url, { username, password })
       .then((res) => {
-        console.log(res);
         setId(res.data.id);
         setLoggedUserName(username);
       })
