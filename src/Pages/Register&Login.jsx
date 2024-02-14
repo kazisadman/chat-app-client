@@ -23,6 +23,7 @@ const RegisterandLogin = () => {
 
   return (
     <div className="flex flex-col justify-center items-center bg-blue-100 h-screen">
+      <div>Register Now</div>
       <form onSubmit={handleSubmit} className="w-1/3 flex flex-col gap-4">
         <input
           type="text"

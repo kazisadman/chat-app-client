@@ -1,16 +1,19 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import Avatar from "../Components/Avatar";
 import { UserContextProvider } from "../Context/UserContext";
 import { uniqBy } from "lodash";
 import axios from "axios";
+import Users from "../Components/Users";
 
 const Chat = () => {
   const [ws, setWs] = useState(null);
   const [onlinePeople, setOnlinePeople] = useState([]);
+  const [offlinePeople, setofflinePeople] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const messageContainerRef = useRef(null);
+
+  console.log(offlinePeople,onlinePeople);
 
   const { Id } = useContext(UserContextProvider);
 
@@ -104,6 +107,19 @@ const Chat = () => {
   };
 
   useEffect(() => {
+    axios.get("/users").then((res) => {
+      const offlineUsersArr = res.data
+        .filter((u) => u._id !== Id)
+        .filter((u) => !Object.keys(onlinePeople).includes(u._id));
+      const offlineUsers = {};
+      offlineUsersArr.forEach((u) => {
+        offlineUsers[u._id] = u.username;
+      });
+      setofflinePeople(offlineUsers);
+    });
+  }, [onlinePeople, Id]);
+
+  useEffect(() => {
     scrollBottom();
   }, [messages]);
 
@@ -126,16 +142,24 @@ const Chat = () => {
           LET&apos;Schat
         </div>
         {Object.keys(onlinePeopleExcludingSelf).map((userId) => (
-          <div
+          <Users
             key={userId}
-            className={`flex items-center gap-2 py-2  cursor-pointer ${
-              userId === selectedUserId && "bg-blue-100  pl-2 rounded-s-2xl"
-            }`}
+            userId={userId}
+            online={true}
+            selected={selectedUserId}
             onClick={() => selectedUser(userId)}
-          >
-            <Avatar userName={onlinePeople[userId]} userId={userId}></Avatar>
-            {onlinePeople[userId]}
-          </div>
+            userName={onlinePeople[userId]}
+          ></Users>
+        ))}
+        {Object.keys(offlinePeople).map((userId) => (
+          <Users
+            key={userId}
+            userId={userId}
+            online={false}
+            selected={selectedUserId}
+            onClick={() => selectedUser(userId)}
+            userName={offlinePeople[userId]}
+          ></Users>
         ))}
       </div>
       <div className=" overflow-y-scroll flex flex-col bg-blue-100 w-2/3 px-4 py-3">
@@ -149,7 +173,7 @@ const Chat = () => {
             <div>
               {messegesWithoutDuplicates.map((message, index) => {
                 const isMessageForSelectedUser =
-                   message.sender === selectedUserId ||
+                  message.sender === selectedUserId ||
                   message.recipent === selectedUserId;
                 if (isMessageForSelectedUser) {
                   return (
@@ -170,7 +194,7 @@ const Chat = () => {
                       </div>
                     </div>
                   );
-                } 
+                }
               })}
               <div ref={messageContainerRef}></div>
             </div>
