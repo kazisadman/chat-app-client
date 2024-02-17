@@ -13,8 +13,6 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const messageContainerRef = useRef(null);
 
-  console.log(offlinePeople, onlinePeople);
-
   const { userName, Id } = useContext(UserContextProvider);
 
   useEffect(() => {
@@ -123,6 +121,13 @@ const Chat = () => {
     scrollBottom();
   }, [messages]);
 
+  function handleLogOut() {
+    axios.post("/logout").then(() => {
+      setWs(null);
+      location.reload();
+    });
+  }
+
   return (
     <div className=" flex h-screen max-w-7xl mx-auto font-poppins">
       <div className="bg-white w-1/3 pl-4 py-3 flex flex-col">
@@ -180,7 +185,10 @@ const Chat = () => {
 
             {userName}
           </div>
-          <button className="bg-blue-600 text-white w-full  rounded-full">
+          <button
+            onClick={handleLogOut}
+            className="bg-blue-600 text-white w-full  rounded-full"
+          >
             logout
           </button>
         </div>
