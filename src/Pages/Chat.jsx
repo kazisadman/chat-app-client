@@ -73,13 +73,17 @@ const Chat = () => {
   const onlinePeopleExcludingSelf = { ...onlinePeople };
   delete onlinePeopleExcludingSelf[Id];
 
-  function handleSendMessage(e) {
-    e.preventDefault();
+  function handleSendMessage(e, file = null) {
+    if (e) e.preventDefault();
+    console.log(file);
 
     const data = {
       recipent: selectedUserId,
       text: newMessage,
+      file,
     };
+
+    console.log(data);
 
     const dataStringify = JSON.stringify(data);
     ws.send(dataStringify);
@@ -90,6 +94,7 @@ const Chat = () => {
       {
         text: newMessage,
         sender: Id,
+        file: file.name,
         recipent: selectedUserId,
         _id: Date.now(),
       },
@@ -103,6 +108,17 @@ const Chat = () => {
       messageContainerRef.current.scrollIntoView();
     }
   };
+
+  function sendFlie(e) {
+    const reader = new FileReader();
+    reader.readAsDataURL(e.target.files[0]);
+    reader.onload = () => {
+      handleSendMessage(null, {
+        name: e.target.files[0].name,
+        data: reader.result,
+      });
+    };
+  }
 
   useEffect(() => {
     axios.get("/users").then((res) => {
@@ -222,6 +238,27 @@ const Chat = () => {
                         } rounded-lg my-4 p-3 inline-block max-w-xs text-justify `}
                       >
                         {message.text}
+                        {message?.file && (
+                          <a
+                            className="flex items-center gap-1 underline"
+                            href={`${axios.defaults.baseURL}/uploads/${message.file}`}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                              className="w-6 h-6"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+
+                            {message.file}
+                          </a>
+                        )}
                       </div>
                     </div>
                   );
@@ -237,6 +274,21 @@ const Chat = () => {
             className="flex items-center gap-2"
             onSubmit={handleSendMessage}
           >
+            <label className="bg-blue-500 text-white p-2 rounded-lg cursor-pointer">
+              <input type="file" className="hidden" onChange={sendFlie} />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </label>
             <input
               value={newMessage}
               type="text"
@@ -246,7 +298,7 @@ const Chat = () => {
             />
             <button
               className="bg-blue-500 text-white p-2 rounded-lg"
-              disabled={newMessage.length === 0}
+              // disabled={newMessage.length === 0}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
