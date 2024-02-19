@@ -13,6 +13,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const messageContainerRef = useRef(null);
 
+
   const { userName, Id } = useContext(UserContextProvider);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ const Chat = () => {
           text: messageData.text,
           sender: messageData.sender,
           recipient: messageData.recipent,
+          file: messageData.fileUrl,
         },
       ]);
     }
@@ -94,7 +96,7 @@ const Chat = () => {
       {
         text: newMessage,
         sender: Id,
-        file: file.name,
+        file: file?.url,
         recipent: selectedUserId,
         _id: Date.now(),
       },
@@ -110,14 +112,39 @@ const Chat = () => {
   };
 
   function sendFlie(e) {
-    const reader = new FileReader();
-    reader.readAsDataURL(e.target.files[0]);
-    reader.onload = () => {
-      handleSendMessage(null, {
-        name: e.target.files[0].name,
-        data: reader.result,
-      });
-    };
+    const imageToast = document.getElementById("image-toast");
+    const imageUrl = `https://api.imgbb.com/1/upload?key=4d2547e7bd3e3e8994fc5ce8fec358bc`;
+
+    const uploadFileExtension = e.target.files[0].name
+      .split(".")[1]
+      .toLowerCase();
+    const image = e.target.files[0];
+    const imageFile = { image: image };
+    if (
+      uploadFileExtension === "jpeg" ||
+      uploadFileExtension === "jpg" ||
+      uploadFileExtension === "png"
+    ) {
+      axios
+        .post(imageUrl, imageFile, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: false,
+        })
+        .then((res) => {
+          handleSendMessage(null, {
+            name: res.data.data.title,
+            url: res.data.data.url,
+          });
+        })
+        .catch((err) => console.error(err));
+    } else {
+      imageToast.classList.remove("hidden");
+      setTimeout(() => {
+        imageToast.classList.add("hidden");
+      }, 3000);
+    }
   }
 
   useEffect(() => {
@@ -142,6 +169,16 @@ const Chat = () => {
       setWs(null);
       location.reload();
     });
+  }
+
+  function showLable() {
+    const imageLabel = document.getElementById("image-label");
+    imageLabel.classList.remove("hidden");
+  }
+
+  function hideLable() {
+    const imageLabel = document.getElementById("image-label");
+    imageLabel.classList.add("hidden");
   }
 
   return (
@@ -241,25 +278,7 @@ const Chat = () => {
                       >
                         {message.text}
                         {message?.file && (
-                          <a
-                            className="flex items-center gap-1 underline"
-                            href={`${axios.defaults.baseURL}/uploads/${message.file}`}
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                              className="w-6 h-6"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-
-                            {message.file}
-                          </a>
+                          <img className="p-0" src={message.file} alt="" />
                         )}
                       </div>
                     </div>
@@ -273,21 +292,34 @@ const Chat = () => {
 
         {selectedUserId && (
           <form
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 relative"
             onSubmit={handleSendMessage}
           >
-            <label className="bg-blue-500 text-white p-2 rounded-lg cursor-pointer">
+            <div
+              id="image-label"
+              className="absolute -top-10 bg-blue-600 p-1 text-white rounded-xl hidden"
+            >
+              Only Select Image(JPG,JPEG,PNG)
+            </div>
+            <label
+              onMouseMove={showLable}
+              onMouseOut={hideLable}
+              id="image-input"
+              className="bg-blue-500 text-white p-2 rounded-lg cursor-pointer "
+            >
               <input type="file" className="hidden" onChange={sendFlie} />
               <svg
                 xmlns="http://www.w3.org/2000/svg"
+                fill="none"
                 viewBox="0 0 24 24"
-                fill="currentColor"
+                strokeWidth={1.5}
+                stroke="currentColor"
                 className="w-6 h-6"
               >
                 <path
-                  fillRule="evenodd"
-                  d="M18.97 3.659a2.25 2.25 0 0 0-3.182 0l-10.94 10.94a3.75 3.75 0 1 0 5.304 5.303l7.693-7.693a.75.75 0 0 1 1.06 1.06l-7.693 7.693a5.25 5.25 0 1 1-7.424-7.424l10.939-10.94a3.75 3.75 0 1 1 5.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 0 1 5.91 15.66l7.81-7.81a.75.75 0 0 1 1.061 1.06l-7.81 7.81a.75.75 0 0 0 1.054 1.068L18.97 6.84a2.25 2.25 0 0 0 0-3.182Z"
-                  clipRule="evenodd"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
                 />
               </svg>
             </label>
@@ -300,7 +332,7 @@ const Chat = () => {
             />
             <button
               className="bg-blue-500 text-white p-2 rounded-lg"
-              // disabled={newMessage.length === 0}
+              disabled={newMessage.length === 0 || newMessage.file === null}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -319,6 +351,11 @@ const Chat = () => {
             </button>
           </form>
         )}
+      </div>
+      <div id="image-toast" className="toast hidden">
+        <div className="alert alert-info">
+          <span>Please Select Image</span>
+        </div>
       </div>
     </div>
   );

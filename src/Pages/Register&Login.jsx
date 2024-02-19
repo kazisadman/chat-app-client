@@ -23,13 +23,14 @@ const RegisterandLogin = () => {
       axios
         .post(url, { username, password })
         .then((res) => {
-          console.log(res);
           setId(res.data.id);
           setLoggedUserName(username);
         })
         .catch((err) => {
           if (err.response.status === 401) {
             setError("Username or Password not matched");
+          } else if (err.response.status === 403) {
+            setError("Username already exist");
           }
         });
     }
@@ -66,21 +67,30 @@ const RegisterandLogin = () => {
         <button className="bg-blue-800 text-white p-2">
           {isLogin ? "Login" : "Register"}
         </button>
-        {error && <div>{error}</div>}
+        {error && <div className="text-red-500">{error}</div>}
       </form>
 
       {isLogin ? (
         <div>
           Don&apos;t have an account?
-          <button className="bg-blue" onClick={() => setIsLogin(false)}>
+          <button
+            className="text-blue-600 mx-1 font-bold"
+            onClick={() => setIsLogin(false)}
+          >
             Register
-          </button>{" "}
+          </button>
           here
         </div>
       ) : (
         <div>
           Already have an account?
-          <button onClick={() => setIsLogin(true)}>Login</button> here
+          <button
+            className="text-blue-600 mx-1 font-bold"
+            onClick={() => setIsLogin(true)}
+          >
+            Login
+          </button>{" "}
+          here
         </div>
       )}
     </div>
