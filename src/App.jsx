@@ -4,7 +4,7 @@ import Routes from "./Router/Routes";
 import UserContext from "./Context/UserContext";
 
 function App() {
-  axios.defaults.baseURL = "http://localhost:5000";
+  axios.defaults.baseURL = "https://lets-chat-server-c44u.onrender.com";
   axios.defaults.withCredentials = true;
 
   return (

@@ -13,7 +13,6 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const messageContainerRef = useRef(null);
 
-
   const { userName, Id } = useContext(UserContextProvider);
 
   useEffect(() => {
@@ -22,7 +21,7 @@ const Chat = () => {
 
   //reconnect to websocket
   function connetToWs() {
-    const ws = new WebSocket("ws://localhost:5000");
+    const ws = new WebSocket("wss://lets-chat-server-c44u.onrender.com");
     setWs(ws);
     ws.addEventListener("message", handleMessage);
     ws.addEventListener("close", () => {
@@ -77,15 +76,12 @@ const Chat = () => {
 
   function handleSendMessage(e, file = null) {
     if (e) e.preventDefault();
-    console.log(file);
 
     const data = {
       recipent: selectedUserId,
       text: newMessage,
       file,
     };
-
-    console.log(data);
 
     const dataStringify = JSON.stringify(data);
     ws.send(dataStringify);
